@@ -4,29 +4,37 @@ pipeline:
   projectIdentifier: demogitexp
   orgIdentifier: default
   tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.fmazlabsgit
+        repoName: demogit001
+        build: <+input>
   stages:
     - stage:
-        name: test
-        identifier: test
+        name: build
+        identifier: build
         description: ""
-        type: Approval
+        type: CI
         spec:
+          cloneCodebase: true
           execution:
             steps:
               - step:
-                  name: app
-                  identifier: app
-                  type: HarnessApproval
-                  timeout: 1d
+                  type: Run
+                  name: run script
+                  identifier: run_script
                   spec:
-                    approvalMessage: |-
-                      Please review the following information
-                      and approve the pipeline progression
-                    includePipelineExecutionHistory: true
-                    approvers:
-                      minimumCount: 1
-                      disallowPipelineExecutor: false
-                      userGroups:
-                        - account.ProdApprovers
-                    approverInputs: []
-        tags: {}
+                    connectorRef: account.harnessImage
+                    image: alpine
+                    shell: Sh
+                    command: echo "Hello Alpine"
+                  description: run
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: account.Harness_Kubernetes_Cluster
+              namespace: francis-namespace
+              automountServiceAccountToken: true
+              nodeSelector: {}
+              os: Linux
